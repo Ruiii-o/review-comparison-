@@ -120,6 +120,28 @@ button:focus-visible, select:focus-visible, .hit:focus-visible {
 
 .hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
 
+/* 類別切換 */
+#category-field { margin-bottom: 14px; }
+.category-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-btn {
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--axis);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-weight: 500;
+}
+.cat-btn.is-on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.note {
+  margin: -4px 0 10px;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  background: var(--page);
+  border: 1px dashed var(--axis);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
 /* 圖表 */
 .legend { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-2); margin-bottom: 8px; }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; }

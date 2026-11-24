@@ -3,39 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>耳機評論比較</title>
+  <title>商品評論比較</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
-    <h1>耳機評論比較</h1>
-    <p class="subtitle">選兩款耳機，看音質、續航、舒適度的好評和負評，再讀對應的評論原文。</p>
+    <h1>商品評論比較</h1>
+    <p class="subtitle">選一個類別和兩款商品，看各面向的好評和負評，再讀對應的評論原文。</p>
   </header>
 
   <main>
     <!-- 1. 選擇區 -->
     <section class="card" id="pick-section" aria-labelledby="pick-title">
-      <h2 id="pick-title">選擇耳機</h2>
+      <h2 id="pick-title">選擇商品</h2>
+      <div class="field" id="category-field">
+        <span class="field-label" id="category-label">類別</span>
+        <div class="category-row" id="category-row" role="radiogroup" aria-labelledby="category-label"></div>
+      </div>
       <div class="pick-row">
         <label class="field">
-          <span class="field-label">耳機 1</span>
+          <span class="field-label">商品 1</span>
           <select id="select-a"></select>
         </label>
         <span class="vs" aria-hidden="true">vs</span>
         <label class="field">
-          <span class="field-label">耳機 2</span>
+          <span class="field-label">商品 2</span>
           <select id="select-b"></select>
         </label>
       </div>
       <div class="pick-actions">
         <button type="button" id="compare-btn" disabled>比較</button>
-        <p class="hint" id="pick-hint" role="status">請選兩款不同的耳機。</p>
+        <p class="hint" id="pick-hint" role="status">請選兩款不同的商品。</p>
       </div>
     </section>
 
     <!-- 2. 圖表區 -->
     <section class="card" id="chart-section" aria-labelledby="chart-title" hidden>
-      <h2 id="chart-title">三個面向比較</h2>
+      <h2 id="chart-title">各面向比較</h2>
+      <p class="note" id="category-note" hidden></p>
       <div class="legend" aria-label="圖例">
         <span class="legend-item"><span class="swatch swatch-neg"></span>負評（往左）</span>
         <span class="legend-item"><span class="swatch swatch-pos"></span>好評（往右）</span>

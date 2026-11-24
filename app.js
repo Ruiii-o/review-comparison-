@@ -1,15 +1,17 @@
-/* 耳機評論比較：第一版
- * 流程：讀資料 → 選兩款 → 算三個面向的好評/負評數 → 畫圖 → 列評論（可篩選）
+/* 商品評論比較
+ * 流程：讀資料 → 選類別 → 選兩款 → 算各面向的好評/負評數 → 畫圖 → 列評論（可篩選）
+ * 類別和面向寫在 data.js 的 categories；沒寫的話預設成耳機的三個面向
  */
 (function () {
   'use strict';
 
-  // ---------- 面向與評價設定（要加面向，只要在這裡加一行） ----------
-  var ASPECTS = [
-    { key: 'sound',   label: '音質',   aliases: ['sound', 'audio', '音質', '音效'] },
-    { key: 'battery', label: '續航',   aliases: ['battery', '續航', '電池', '電量'] },
-    { key: 'comfort', label: '舒適度', aliases: ['comfort', '舒適度', '舒適', '配戴'] }
+  // ---------- 預設面向（data.js 沒寫 categories 時用） ----------
+  var DEFAULT_ASPECTS = [
+    { aspect: 'sound',   label: '音質',   aliases: ['audio', '音效'] },
+    { aspect: 'battery', label: '續航',   aliases: ['電池', '電量'] },
+    { aspect: 'comfort', label: '舒適度', aliases: ['舒適', '配戴'] }
   ];
+  var ASPECTS = [];   // 目前選到的類別的面向
   var SENTS = [
     { key: 'pos', label: '好評', aliases: ['pos', 'positive', '好評', '正面', '1', '+1'] },
     { key: 'neg', label: '負評', aliases: ['neg', 'negative', '負評', '負面', '-1'] }
@@ -43,8 +45,31 @@
     return;
   }
 
+  // 類別：每個類別有自己的面向
+  function makeAspects(list) {
+    return list.map(function (a) {
+      var key = String(a.aspect || a.key);
+      var label = String(a.label || key);
+      var aliases = [key, label].concat(a.aliases || []).map(function (x) { return String(x).trim().toLowerCase(); });
+      return { key: key, label: label, aliases: aliases };
+    });
+  }
+  var categories = (raw.categories && raw.categories.length ? raw.categories : [
+    { category_id: 'default', category_name: '商品', aspects: DEFAULT_ASPECTS }
+  ]).map(function (c) {
+    return {
+      id: String(c.category_id),
+      name: String(c.category_name || c.category_id),
+      note: c.note ? String(c.note) : '',
+      aspects: makeAspects(c.aspects && c.aspects.length ? c.aspects : DEFAULT_ASPECTS)
+    };
+  });
+  var categoryById = {};
+  categories.forEach(function (c) { categoryById[c.id] = c; });
+
   var products = raw.products.map(function (p) {
-    return { id: String(p.product_id), name: String(p.product_name || p.product_id) };
+    var cat = p.category_id && categoryById[String(p.category_id)] ? String(p.category_id) : categories[0].id;
+    return { id: String(p.product_id), name: String(p.product_name || p.product_id), category: cat };
   });
   var productById = {};
   products.forEach(function (p) { productById[p.id] = p; });
@@ -59,11 +84,20 @@
     };
   });
 
-  // 每則評論的標籤（同一面向＋同一評價只算一次）
+  var reviewById = {};
+  reviews.forEach(function (r) { reviewById[r.id] = r; });
+  function aspectsOfReview(rid) {
+    var r = reviewById[rid];
+    var p = r && productById[r.productId];
+    return p ? categoryById[p.category].aspects : null;
+  }
+
+  // 每則評論的標籤（同一面向＋同一評價只算一次；面向依該商品的類別判斷）
   var tagsByReview = {};
   var skipped = 0;
   raw.analysis.forEach(function (a) {
-    var aspect = findKey(ASPECTS, a.aspect);
+    var list0 = aspectsOfReview(String(a.review_id));
+    var aspect = list0 ? findKey(list0, a.aspect) : null;
     var sent = findKey(SENTS, a.sentiment);
     if (!aspect || !sent) { skipped++; return; }
     var rid = String(a.review_id);
@@ -73,19 +107,21 @@
   });
   if (skipped) console.warn('有 ' + skipped + ' 筆分析結果的面向或評價看不懂，已略過。');
 
-  // 照 ASPECTS 順序排標籤，顯示比較整齊
+  // 照面向順序排標籤，顯示比較整齊
   Object.keys(tagsByReview).forEach(function (rid) {
+    var list = aspectsOfReview(rid);
     tagsByReview[rid].sort(function (x, y) {
-      return aspectIndex(x.aspect) - aspectIndex(y.aspect) || (x.sent === 'pos' ? -1 : 1);
+      return aspectIndex(list, x.aspect) - aspectIndex(list, y.aspect) || (x.sent === 'pos' ? -1 : 1);
     });
   });
-  function aspectIndex(k) {
-    for (var i = 0; i < ASPECTS.length; i++) if (ASPECTS[i].key === k) return i;
+  function aspectIndex(list, k) {
+    for (var i = 0; i < list.length; i++) if (list[i].key === k) return i;
     return 99;
   }
 
   // ---------- 狀態 ----------
   var state = {
+    cat: '',                   // 目前的類別
     a: '', b: '',              // 已比較的兩款
     filter: { product: 'all', aspect: 'all', sent: 'all' }
   };
@@ -94,12 +130,42 @@
   var selA = $('select-a'), selB = $('select-b'), btn = $('compare-btn'), hint = $('pick-hint');
 
   function fillProductSelect(sel) {
-    sel.innerHTML = '<option value="">請選擇</option>' + products.map(function (p) {
+    sel.innerHTML = '<option value="">請選擇</option>' + products.filter(function (p) {
+      return p.category === state.cat;
+    }).map(function (p) {
       return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>';
     }).join('');
   }
-  fillProductSelect(selA);
-  fillProductSelect(selB);
+
+  // 類別切換（只有一個類別就不顯示）
+  var catRow = $('category-row');
+  function renderCategoryButtons() {
+    catRow.innerHTML = categories.map(function (c) {
+      var on = c.id === state.cat;
+      return '<button type="button" class="cat-btn' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on +
+        '" data-cat="' + esc(c.id) + '">' + esc(c.name) + '</button>';
+    }).join('');
+  }
+  function setCategory(id) {
+    state.cat = id;
+    state.a = state.b = '';
+    ASPECTS = categoryById[id].aspects;
+    renderCategoryButtons();
+    fillProductSelect(selA);
+    fillProductSelect(selB);
+    $('chart-section').hidden = true;
+    $('review-section').hidden = true;
+    hideTip();
+    var note = categoryById[id].note;
+    $('category-note').textContent = note;
+    $('category-note').hidden = !note;
+    syncPick();
+  }
+  catRow.addEventListener('click', function (e) {
+    var b = e.target.closest('.cat-btn');
+    if (b && b.getAttribute('data-cat') !== state.cat) setCategory(b.getAttribute('data-cat'));
+  });
+  $('category-field').hidden = categories.length < 2;
 
   function syncPick() {
     // 另一邊已選的商品不能重複選
@@ -110,11 +176,10 @@
     });
     var ok = selA.value && selB.value && selA.value !== selB.value;
     btn.disabled = !ok;
-    hint.textContent = ok ? '' : (!selA.value || !selB.value ? '請選兩款不同的耳機。' : '兩邊不能選同一款。');
+    hint.textContent = ok ? '' : (!selA.value || !selB.value ? '請選兩款不同的商品。' : '兩邊不能選同一款。');
   }
   selA.addEventListener('change', syncPick);
   selB.addEventListener('change', syncPick);
-  syncPick();
 
   btn.addEventListener('click', function () {
     state.a = selA.value;
@@ -165,7 +230,8 @@
     var H = topH + ASPECTS.length * (groupHead + ids.length * rowH) + 4;
 
     var s = [];
-    s.push('<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="兩款耳機在音質、續航、舒適度的好評與負評數量">');
+    var aspectNames = ASPECTS.map(function (a) { return a.label; }).join('、');
+    s.push('<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="兩款商品在' + esc(aspectNames) + '的好評與負評數量">');
     // 方向說明
     s.push('<text x="' + (cx - 8) + '" y="14" text-anchor="end" font-size="13" style="fill:var(--muted)">← 負評</text>');
     s.push('<text x="' + (cx + 8) + '" y="14" font-size="13" style="fill:var(--muted)">好評 →</text>');
@@ -361,6 +427,9 @@
     });
   }
 
+  // 啟動：預設第一個類別
+  setCategory(categories[0].id);
+
   function stars(n) {
     var k = Math.max(0, Math.min(5, Math.round(n)));
     return '<span class="stars" aria-label="' + k + ' 顆星">' + '★★★★★'.slice(0, k) + '<span style="color:var(--axis)">' + '★★★★★'.slice(0, 5 - k) + '</span></span>';
@@ -378,7 +447,7 @@
       var tags = tagsByReview[r.id] || [];
       var tagHtml = tags.length ? tags.map(function (t) {
         return '<span class="tag tag-' + t.sent + '">' + esc(labelOf(ASPECTS, t.aspect)) + ' ' + esc(labelOf(SENTS, t.sent)) + '</span>';
-      }).join('') : '<span class="tag tag-none">沒標到三個面向</span>';
+      }).join('') : '<span class="tag tag-none">沒標到比較的面向</span>';
       return '<li class="review">' +
         '<div class="review-head"><span>' + esc(productById[r.productId] ? productById[r.productId].name : r.productId) + '</span>' + stars(r.rating) + '</div>' +
         (r.title ? '<p class="review-title">' + esc(r.title) + '</p>' : '') +
