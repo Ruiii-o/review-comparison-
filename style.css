@@ -182,7 +182,8 @@ button:focus-visible, select:focus-visible, .hit:focus-visible {
   color: var(--text-2);
 }
 .stars { color: var(--text); letter-spacing: 1px; }
-.review-text { margin: 6px 0 8px; }
+.review-title { margin: 6px 0 0; font-weight: 600; }
+.review-text { margin: 4px 0 8px; white-space: pre-line; overflow-wrap: anywhere; }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .tag {
   font-size: 0.8rem;
@@ -197,7 +198,7 @@ button:focus-visible, select:focus-visible, .hit:focus-visible {
 .tag-pos::before { background: var(--pos); }
 .tag-neg::before { background: var(--neg); }
 .tag-none { background: transparent; border: 1px dashed var(--axis); color: var(--muted); }
-.review-id { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+.review-id { font-size: 0.75rem; color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
 
 .empty { color: var(--muted); text-align: center; padding: 20px 0; }
 .error { color: var(--neg); }

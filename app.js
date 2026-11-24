@@ -54,6 +54,7 @@
       id: String(r.review_id),
       productId: String(r.product_id),
       rating: Number(r.rating) || 0,
+      title: String(r.title || ''),
       text: String(r.text || '')
     };
   });
@@ -380,6 +381,7 @@
       }).join('') : '<span class="tag tag-none">沒標到三個面向</span>';
       return '<li class="review">' +
         '<div class="review-head"><span>' + esc(productById[r.productId] ? productById[r.productId].name : r.productId) + '</span>' + stars(r.rating) + '</div>' +
+        (r.title ? '<p class="review-title">' + esc(r.title) + '</p>' : '') +
         '<p class="review-text">' + esc(r.text) + '</p>' +
         '<div class="tags">' + tagHtml + '</div>' +
         '<div class="review-id">評論 ID：' + esc(r.id) + '</div>' +
