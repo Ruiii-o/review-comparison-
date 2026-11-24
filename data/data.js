@@ -1,11 +1,7 @@
 /*
  * 評論比較：真實資料（Amazon Reviews 2023）
- * 資料集 1：AirPods 2 vs AirPods Pro 2（reviews.csv + analysis_ready.csv）
- * 資料集 2：Sony WH-1000XM4 vs Bose QuietComfort 45（headphone_reviews_complete.csv）
- *   音質、舒適度用「語境複核」欄；續航用「續航充電_面向模型初判」（尚未複核）
- *   「混合」記成好評＋負評各一筆；未提及、中立、待複核不計
- * 資料集 3：Logitech K350 vs Microsoft Ergonomic 4000（reviews_keyboard.csv）
- *   分析結果為暫定標註（analysis_keyboard_暫定.csv），待分析組替換
+ * 評論：reviews.csv（AirPods）、headphone_reviews_complete.csv（Sony、Bose）、reviews_keyboard.csv（鍵盤）
+ * 分析：分析組完整分析檔（status 欄保留來源：existing_reviewed / existing_context_review / existing_unverified / needs_review）
  */
 window.SITE_DATA = {
   "categories": [
@@ -25,26 +21,27 @@ window.SITE_DATA = {
           "aspect": "comfort",
           "label": "舒適度"
         }
-      ]
+      ],
+      "note": "耳機的好評、負評是 AI 判斷結果，不是人工標註；Sony、Bose 的續航是模型初判，尚未複核。"
     },
     {
       "category_id": "keyboard",
       "category_name": "鍵盤",
       "aspects": [
         {
-          "aspect": "feel",
+          "aspect": "typing",
           "label": "手感"
         },
         {
-          "aspect": "comfort",
-          "label": "舒適度"
+          "aspect": "noise",
+          "label": "按鍵聲音"
         },
         {
-          "aspect": "durability",
-          "label": "耐用做工"
+          "aspect": "connection",
+          "label": "連線"
         }
       ],
-      "note": "鍵盤的好評、負評目前是暫定標註，之後會換成分析組的結果。"
+      "note": "鍵盤的好評、負評是面向模型初判，尚未人工複核。"
     }
   ],
   "products": [
@@ -645,452 +642,470 @@ window.SITE_DATA = {
     {
       "review_id": "generated_a614562d714239610e610e760b2e895e33f9461b83bc32dfc8eff72be074ad8d",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_f302ad00bf126606674803aafd434c6e75d75f56ce3e543acd5eae3e5d324c1d",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_1f8ad6a7522f0be3fa83dc82f48dcd229f41acee9e603cb3f2a08ce70e93574f",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_1f8ad6a7522f0be3fa83dc82f48dcd229f41acee9e603cb3f2a08ce70e93574f",
       "aspect": "battery",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_42aa0f5cd58521ae29c00d427bc9bdfaa005912c99894d4d570a3977cddc0824",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_42aa0f5cd58521ae29c00d427bc9bdfaa005912c99894d4d570a3977cddc0824",
       "aspect": "comfort",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_fd58529a283628230eacc3d08676f0b5afbac403319dd0f2459652856210bae4",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_fd58529a283628230eacc3d08676f0b5afbac403319dd0f2459652856210bae4",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_2f75b69edbeac08545e84f3d6052976a02217903a777727e85307f644f6d7d0a",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_defa7d7896a5fdbc2a78991572053752cc37c83849a8434f4525526bcbca1f9b",
       "aspect": "sound",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_0a577490d49d21e36349bdea74bdf79467aa336eaaa228511e21b820cea6320e",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_0a577490d49d21e36349bdea74bdf79467aa336eaaa228511e21b820cea6320e",
       "aspect": "battery",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_283ec80c0abdaaa44880c8dfb4730d59990f908680e9148347a9039fd0fd4165",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_2b7c6e5a03890ff25a8810a411450a45ce8c3c6bb02a9dd43658a1b0fd8960bb",
       "aspect": "battery",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_reviewed"
     },
     {
       "review_id": "generated_a882d0cb5c99976f0e17ec01e38ca1e7ff37db18cda01b17cc88359b3e61dd69",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_reviewed"
+    },
+    {
+      "review_id": "generated_7a9ebbfb03f62c4476c0cd54e91df3152d108a679e353f7c4ce8831c354fd40e",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_7a9ebbfb03f62c4476c0cd54e91df3152d108a679e353f7c4ce8831c354fd40e",
+      "aspect": "noise",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
+      "aspect": "noise",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
+      "aspect": "connection",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_554a4a14f0924c8a14fe9a96650b97db4fa5c518a70a4757f05208247e4c06c0",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_554a4a14f0924c8a14fe9a96650b97db4fa5c518a70a4757f05208247e4c06c0",
+      "aspect": "connection",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
+      "aspect": "noise",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
+      "aspect": "noise",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_816536f552b0c10d8c8cf644d259d74e86a4660362227c6c5459ce00ab9e59c2",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
+      "aspect": "connection",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_dafe3c15132637456e3d662749d0e104ddaa296d305d2dd0a15371a25be65cf1",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_dafe3c15132637456e3d662749d0e104ddaa296d305d2dd0a15371a25be65cf1",
+      "aspect": "connection",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
+      "aspect": "noise",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
+      "aspect": "connection",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_6eacd36537642755c71b3412c5239d2193c98d6ca3e8aafcd7312c9d6894ba90",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_6eacd36537642755c71b3412c5239d2193c98d6ca3e8aafcd7312c9d6894ba90",
+      "aspect": "connection",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_bbe8c157f8d25edd59b2a8f0ddee2285dbfe2c34f738c8fe5e62fec46fe2b506",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_808f7168cba8ebdb288d6ec770da163d2fee2309e58e4a527615645600637cf4",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_71b7ea55f03c98dbd0279e52acc5eb7801b3c54b740f6e237f3b829b0f1203b1",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_71b7ea55f03c98dbd0279e52acc5eb7801b3c54b740f6e237f3b829b0f1203b1",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_75f423133151ae1348b10aaf89316c334505188a099b74ae5d05b5241a096fd7",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_f443572ca741ba8a1210fd402c0c0112e1928899e5cf939fc56778d4e523ac8e",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_947d8b36d8a00b98182359cf9a379df0b066b9c530d1bb997e748b74eddebadf",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_1249e7d5726ac6017d4bc45e121dc84cfcbb608554865cdc1262226640521b38",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_63dff707cc00c7e0adf8d9773d1087c638441256fcd8a0423913dd04aad2f804",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_1a212c6b7200f4cda79ba5b44568557f3e011b1ad3aae956a223e7e58c750c3b",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_533169d085b1c9ddbe20cfbbd50f51ea40c1f1b49d30141fd03f4ec81f7ac811",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_533169d085b1c9ddbe20cfbbd50f51ea40c1f1b49d30141fd03f4ec81f7ac811",
+      "aspect": "noise",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_533169d085b1c9ddbe20cfbbd50f51ea40c1f1b49d30141fd03f4ec81f7ac811",
+      "aspect": "noise",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_1681331f6defd23816ad7ec9f4abb4f10ec1ca17893167d84d740549ce34341e",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_1681331f6defd23816ad7ec9f4abb4f10ec1ca17893167d84d740549ce34341e",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3f6a389a08978f1ee61064a647a351ea2a7eb5a2008568b012f7d4fb0a6a7bed",
+      "aspect": "typing",
+      "sentiment": "neg",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3f6a389a08978f1ee61064a647a351ea2a7eb5a2008568b012f7d4fb0a6a7bed",
+      "aspect": "typing",
+      "sentiment": "pos",
+      "status": "needs_review"
+    },
+    {
+      "review_id": "generated_3f6a389a08978f1ee61064a647a351ea2a7eb5a2008568b012f7d4fb0a6a7bed",
+      "aspect": "noise",
+      "sentiment": "neg",
+      "status": "needs_review"
     },
     {
       "review_id": "c980459acb59ae8e",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "8887dcf4d9193734",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "8887dcf4d9193734",
       "aspect": "comfort",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_context_review"
     },
     {
       "review_id": "8887dcf4d9193734",
       "aspect": "battery",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_unverified"
     },
     {
       "review_id": "d876b57c490552dd",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "d876b57c490552dd",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "dffc673d0bd1d9d5",
       "aspect": "comfort",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_context_review"
     },
     {
       "review_id": "e78796c6823b08f7",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "e78796c6823b08f7",
       "aspect": "battery",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_unverified"
     },
     {
       "review_id": "7f53becb3194944b",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "b26446b371037650",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "45a58a0175d0c345",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "27e2f94f32a70ab8",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "e757370bf19257ae",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "e757370bf19257ae",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "eeb1982812c859f1",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "20562002d530dcbc",
       "aspect": "sound",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "e0cf0679b55c9ac6",
       "aspect": "comfort",
-      "sentiment": "pos"
+      "sentiment": "pos",
+      "status": "existing_context_review"
     },
     {
       "review_id": "91571b111bb68087",
       "aspect": "sound",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_context_review"
     },
     {
       "review_id": "91571b111bb68087",
       "aspect": "comfort",
-      "sentiment": "neg"
+      "sentiment": "neg",
+      "status": "existing_context_review"
     },
     {
       "review_id": "05bcf35e0e3fd226",
       "aspect": "sound",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_7a9ebbfb03f62c4476c0cd54e91df3152d108a679e353f7c4ce8831c354fd40e",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_7a9ebbfb03f62c4476c0cd54e91df3152d108a679e353f7c4ce8831c354fd40e",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_da31b796eb5e9c4a8339e801b03123d2c1ebc0e1cd639d5853182d985c3df3c1",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_554a4a14f0924c8a14fe9a96650b97db4fa5c518a70a4757f05208247e4c06c0",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_e280ee6fe1ae43d2af12546ad54d7837167c703c557aa41fa36eb1991c4eae4f",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_ba33d9ef7f82073798e86f441dabe526ed998f00508cfa2302a1fae0cdff129e",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_816536f552b0c10d8c8cf644d259d74e86a4660362227c6c5459ce00ab9e59c2",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_080c526a7061b018ec7c621b4f5e1f07c01f45e865f526cb72ffed69e4b77760",
-      "aspect": "feel",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_080c526a7061b018ec7c621b4f5e1f07c01f45e865f526cb72ffed69e4b77760",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_8b93e05701f984a57183f89ff2c4d9591d9e9e15bc08302bc3490b7afaffd66d",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
-      "aspect": "feel",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_c1e3788cc5039f7474a928870880800561214ffa03c7ead76c9b0949495b557b",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_dafe3c15132637456e3d662749d0e104ddaa296d305d2dd0a15371a25be65cf1",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_dafe3c15132637456e3d662749d0e104ddaa296d305d2dd0a15371a25be65cf1",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
-      "aspect": "feel",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_3040f492c2988a4997d43326ccd6a147adadaeb43a366c1515206ca7684b682c",
-      "aspect": "durability",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_6eacd36537642755c71b3412c5239d2193c98d6ca3e8aafcd7312c9d6894ba90",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_db4cd86ebe7b7b10f927075a8d514f7b31a59cbbcdb0c928e4528400c45b33a4",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_bbe8c157f8d25edd59b2a8f0ddee2285dbfe2c34f738c8fe5e62fec46fe2b506",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_808f7168cba8ebdb288d6ec770da163d2fee2309e58e4a527615645600637cf4",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_73239445af9d52235ca6aee71d8bfbf815c0d3a35b91f431d7af9e9e38dfc1da",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_d81aa62dead9a58ff35c82b2e11ed5cde7cd5b3d58c4845c36e53d7c27dd65a9",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_ae720e88b412d63eba2174980120ff75df879001d1e3e1b56866236bd3ec1847",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_71b7ea55f03c98dbd0279e52acc5eb7801b3c54b740f6e237f3b829b0f1203b1",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_71b7ea55f03c98dbd0279e52acc5eb7801b3c54b740f6e237f3b829b0f1203b1",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_e6b79a8181474c4510815efab351d1ef49bcf4ba17a216818c43f3ccead23d41",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_75f423133151ae1348b10aaf89316c334505188a099b74ae5d05b5241a096fd7",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_9c513f70b99cb6fbb2d1be06f3d665cbf31664b9e2a128a7ac307f2340287288",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_f443572ca741ba8a1210fd402c0c0112e1928899e5cf939fc56778d4e523ac8e",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_ee45929c043d3a59b406949b72ff100fc4fe95f7bc7d9c56d427d37bb6439648",
-      "aspect": "durability",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_ee45929c043d3a59b406949b72ff100fc4fe95f7bc7d9c56d427d37bb6439648",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_4903d57c42b932be88ca89796afef7c96b36c89a8d8a4242f21279633fb3886d",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_947d8b36d8a00b98182359cf9a379df0b066b9c530d1bb997e748b74eddebadf",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_1249e7d5726ac6017d4bc45e121dc84cfcbb608554865cdc1262226640521b38",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_1249e7d5726ac6017d4bc45e121dc84cfcbb608554865cdc1262226640521b38",
-      "aspect": "comfort",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_6286848f8e94020a4f31c194794101adc98e7c0caf78e55e191cdd0cd998b64c",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_6286848f8e94020a4f31c194794101adc98e7c0caf78e55e191cdd0cd998b64c",
-      "aspect": "durability",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_63dff707cc00c7e0adf8d9773d1087c638441256fcd8a0423913dd04aad2f804",
-      "aspect": "feel",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_63dff707cc00c7e0adf8d9773d1087c638441256fcd8a0423913dd04aad2f804",
-      "aspect": "comfort",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_661057c4938a4194543d47e6e817fc3672ef4de63e8e5caae27f1ef806901789",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_661057c4938a4194543d47e6e817fc3672ef4de63e8e5caae27f1ef806901789",
-      "aspect": "durability",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_1a212c6b7200f4cda79ba5b44568557f3e011b1ad3aae956a223e7e58c750c3b",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_1a212c6b7200f4cda79ba5b44568557f3e011b1ad3aae956a223e7e58c750c3b",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_533169d085b1c9ddbe20cfbbd50f51ea40c1f1b49d30141fd03f4ec81f7ac811",
-      "aspect": "feel",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_533169d085b1c9ddbe20cfbbd50f51ea40c1f1b49d30141fd03f4ec81f7ac811",
-      "aspect": "feel",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_800b9c56226d60b919700ab8a71fcecf185042bbca165f61e05c526d0b3d41f3",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_1681331f6defd23816ad7ec9f4abb4f10ec1ca17893167d84d740549ce34341e",
-      "aspect": "comfort",
-      "sentiment": "pos"
-    },
-    {
-      "review_id": "generated_1681331f6defd23816ad7ec9f4abb4f10ec1ca17893167d84d740549ce34341e",
-      "aspect": "durability",
-      "sentiment": "neg"
-    },
-    {
-      "review_id": "generated_3f6a389a08978f1ee61064a647a351ea2a7eb5a2008568b012f7d4fb0a6a7bed",
-      "aspect": "durability",
-      "sentiment": "pos"
+      "sentiment": "neg",
+      "status": "existing_context_review"
     }
   ]
 };
