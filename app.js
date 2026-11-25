@@ -58,8 +58,8 @@
     { category_id: 'default', category_name: '商品', aspects: DEFAULT_ASPECTS }
   ]).map(function (c) {
     return {
-      id: String(c.category_id),
-      name: String(c.category_name || c.category_id),
+      id: String(c.category_id || c.key),
+      name: String(c.category_name || c.label || c.category_id || c.key),
       note: c.note ? String(c.note) : '',
       aspects: makeAspects(c.aspects && c.aspects.length ? c.aspects : DEFAULT_ASPECTS)
     };
@@ -68,55 +68,88 @@
   categories.forEach(function (c) { categoryById[c.id] = c; });
 
   var products = raw.products.map(function (p) {
-    var cat = p.category_id && categoryById[String(p.category_id)] ? String(p.category_id) : categories[0].id;
-    return { id: String(p.product_id), name: String(p.product_name || p.product_id), category: cat };
+    var categoryValue = p.category_id || p.category;
+    var cat = categoryValue && categoryById[String(categoryValue)] ? String(categoryValue) : categories[0].id;
+    return { id: String(p.product_id), name: String(p.display_name || p.product_name || p.product_id), category: cat };
   });
   var productById = {};
+  $('source-note').textContent = (raw.metadata && raw.metadata.source || '') + '。' + (raw.metadata && raw.metadata.warning || 'AI初判需抽查。');
   products.forEach(function (p) { productById[p.id] = p; });
 
-  var reviews = raw.reviews.map(function (r) {
-    return {
-      id: String(r.review_id),
-      productId: String(r.product_id),
-      rating: Number(r.rating) || 0,
-      title: String(r.title || ''),
-      text: String(r.text || '')
-    };
-  });
-
-  var reviewById = {};
-  reviews.forEach(function (r) { reviewById[r.id] = r; });
+  var reviews = [], reviewById = {}, tagsByReview = {}, statusesByReview = {};
   function aspectsOfReview(rid) {
-    var r = reviewById[rid];
-    var p = r && productById[r.productId];
-    return p ? categoryById[p.category].aspects : null;
+    var r = reviewById[rid], product = r && productById[r.productId];
+    return product ? categoryById[product.category].aspects : null;
+  }
+  function installDataset(rows, analysisRows, statusRows) {
+    reviews = []; reviewById = {}; tagsByReview = {}; statusesByReview = {};
+    rows.forEach(function(r) {
+      var id=String(r.review_id), pid=String(r.product_id);
+      if (!id || reviewById[id] || !productById[pid]) throw new Error('評論ID重複或商品ID無法對應。');
+      var item={id:id,productId:pid,rating:Number(r.rating)||0,title:String(r.title||''),text:String(r.text||'')};
+      reviews.push(item);reviewById[id]=item;
+    });
+    analysisRows.forEach(function(a) {
+      var rid=String(a.review_id), r=reviewById[rid];
+      var list0=aspectsOfReview(rid), aspect=list0 && findKey(list0,a.aspect), sent=findKey(SENTS,a.sentiment);
+      if (!r || String(a.product_id)!==r.productId || !aspect || !sent) throw new Error('分析與原文、商品或面向對不上，已停止顯示。');
+      var list=tagsByReview[rid] || (tagsByReview[rid]=[]);
+      if (!list.some(function(t){return t.aspect===aspect && t.sent===sent;}))list.push({aspect:aspect,sent:sent});
+    });
+    statusRows.forEach(function(s) {
+      var rid=String(s.review_id),r=reviewById[rid];
+      if (!r || String(s.product_id)!==r.productId)throw new Error('分析狀態與原文ID對不上。');
+      (statusesByReview[rid] || (statusesByReview[rid]=[])).push(s);
+    });
+    Object.keys(tagsByReview).forEach(function(rid) {
+      var list=aspectsOfReview(rid);
+      tagsByReview[rid].sort(function(x,y){return aspectIndex(list,x.aspect)-aspectIndex(list,y.aspect)||(x.sent==='pos'?-1:1);});
+    });
+  }
+  function aspectIndex(list,k) {for(var i=0;i<list.length;i++)if(list[i].key===k)return i;return 99;}
+  try { installDataset(raw.reviews,raw.analysis,raw.statuses||[]); }
+  catch(error) {
+    $('data-error').textContent=error.message;$('data-error').hidden=false;$('pick-section').hidden=true;return;
+  }
+  var productPromises = {}, comparisonRequest = 0, loading = false;
+  function loadProduct(pid) {
+    var cached=window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
+    if (cached)return Promise.resolve(cached);
+    if (productPromises[pid])return productPromises[pid];
+    productPromises[pid]=new Promise(function(resolve,reject) {
+      var script=document.createElement('script');
+      script.src=raw.product_files[pid];script.async=true;
+      script.onload=function(){
+        var data=window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
+        if (!data || data.product_id!==pid || !Array.isArray(data.reviews) || !Array.isArray(data.analysis)) {
+          delete productPromises[pid];script.remove();reject(new Error('商品資料不完整，請重新載入。'));return;
+        }
+        resolve(data);
+      };
+      script.onerror=function(){delete productPromises[pid];script.remove();reject(new Error('商品資料下載失敗，請稍後再試。'));};
+      document.head.appendChild(script);
+    });
+    return productPromises[pid];
   }
 
-  // 每則評論的標籤（同一面向＋同一評價只算一次；面向依該商品的類別判斷）
-  var tagsByReview = {};
-  var skipped = 0;
-  raw.analysis.forEach(function (a) {
-    var list0 = aspectsOfReview(String(a.review_id));
-    var aspect = list0 ? findKey(list0, a.aspect) : null;
-    var sent = findKey(SENTS, a.sentiment);
-    if (!aspect || !sent) { skipped++; return; }
-    var rid = String(a.review_id);
-    var list = tagsByReview[rid] || (tagsByReview[rid] = []);
-    var dup = list.some(function (t) { return t.aspect === aspect && t.sent === sent; });
-    if (!dup) list.push({ aspect: aspect, sent: sent });
-  });
-  if (skipped) console.warn('有 ' + skipped + ' 筆分析結果的面向或評價看不懂，已略過。');
-
-  // 照面向順序排標籤，顯示比較整齊
-  Object.keys(tagsByReview).forEach(function (rid) {
-    var list = aspectsOfReview(rid);
-    tagsByReview[rid].sort(function (x, y) {
-      return aspectIndex(list, x.aspect) - aspectIndex(list, y.aspect) || (x.sent === 'pos' ? -1 : 1);
-    });
-  });
-  function aspectIndex(list, k) {
-    for (var i = 0; i < list.length; i++) if (list[i].key === k) return i;
-    return 99;
+  var shardPromises = {}, comparisonRequest = 0, loading = false;
+  function loadProduct(pid) {
+    var cached = window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
+    if(cached) return String(cached.product_id)===pid ? Promise.resolve(cached) : Promise.reject(new Error('商品分卷ID錯誤。'));
+    if(shardPromises[pid]) return shardPromises[pid];
+    shardPromises[pid]=new Promise(function(resolve,reject) {
+      var path=raw.product_files[pid];
+      if(!path || !/^data\/products\/[a-f0-9]+\.js$/.test(path)) {reject(new Error('找不到這款商品的評論檔案。'));return;}
+      var script=document.createElement('script');script.src=path;
+      script.onload=function(){
+        var data=window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
+        if(!data || String(data.product_id)!==pid || !Array.isArray(data.reviews) || !Array.isArray(data.analysis)){reject(new Error('商品評論檔案內容不完整。'));return;}
+        resolve(data);
+      };
+      script.onerror=function(){script.remove();reject(new Error('商品評論載入失敗，請稍後再按比較重試。'));};
+      document.head.appendChild(script);
+    }).catch(function(error){delete shardPromises[pid];throw error;});
+    return shardPromises[pid];
   }
 
   // ---------- 狀態 ----------
@@ -147,6 +180,7 @@
     }).join('');
   }
   function setCategory(id) {
+    comparisonRequest++; loading=false;
     state.cat = id;
     state.a = state.b = '';
     ASPECTS = categoryById[id].aspects;
@@ -175,23 +209,34 @@
       });
     });
     var ok = selA.value && selB.value && selA.value !== selB.value;
-    btn.disabled = !ok;
+    btn.disabled = !ok || loading;
     hint.textContent = ok ? '' : (!selA.value || !selB.value ? '請選兩款不同的商品。' : '兩邊不能選同一款。');
   }
   selA.addEventListener('change', syncPick);
   selB.addEventListener('change', syncPick);
 
-  btn.addEventListener('click', function () {
-    state.a = selA.value;
-    state.b = selB.value;
-    state.filter = { product: 'all', aspect: 'all', sent: 'all' };
-    $('chart-section').hidden = false;
-    $('review-section').hidden = false;
-    renderChart();
-    renderTable();
-    fillFilters();
-    renderReviews();
-    $('chart-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function displayComparison(a,b) {
+    state.a=a;state.b=b;state.filter={product:'all',aspect:'all',sent:'all'};
+    $('chart-section').hidden=false;$('review-section').hidden=false;
+    renderChart();renderTable();fillFilters();renderReviews();
+    $('chart-section').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  btn.addEventListener('click',function() {
+    var a=selA.value,b=selB.value,cat=state.cat;
+    if (!a || !b || a===b || productById[a].category!==cat || productById[b].category!==cat)return;
+    if (!raw.product_files) {displayComparison(a,b);return;}
+    var request=++comparisonRequest, succeeded=false;loading=true;btn.disabled=true;hint.textContent='正在讀取這兩款商品的評論…';
+    $('chart-section').hidden=true;$('review-section').hidden=true;
+    Promise.all([loadProduct(a),loadProduct(b)]).then(function(pair) {
+      if (request!==comparisonRequest || state.cat!==cat || selA.value!==a || selB.value!==b)return;
+      installDataset(pair[0].reviews.concat(pair[1].reviews),pair[0].analysis.concat(pair[1].analysis),(pair[0].statuses||[]).concat(pair[1].statuses||[]));
+      displayComparison(a,b);
+      succeeded=true;
+    }).catch(function(error) {
+      if(request===comparisonRequest)hint.textContent=error.message;
+    }).finally(function() {
+      if(request===comparisonRequest) {loading=false;btn.disabled=!(selA.value&&selB.value&&selA.value!==selB.value);if(succeeded)hint.textContent='';}
+    });
   });
 
   // ---------- 3. 計算數量 ----------
@@ -448,11 +493,15 @@
       var tagHtml = tags.length ? tags.map(function (t) {
         return '<span class="tag tag-' + t.sent + '">' + esc(labelOf(ASPECTS, t.aspect)) + ' ' + esc(labelOf(SENTS, t.sent)) + '</span>';
       }).join('') : '<span class="tag tag-none">沒標到比較的面向</span>';
+      var statusHtml = (statusesByReview[r.id] || []).map(function(s) {
+        return '<div class="hint">' + esc(labelOf(ASPECTS,s.aspect)) + '：' + esc(s.provenance || s.status) + (s.review_notes && s.review_notes.length ? '；待確認：' + esc(s.review_notes.join('；')) : '') + '</div>';
+      }).join('');
       return '<li class="review">' +
         '<div class="review-head"><span>' + esc(productById[r.productId] ? productById[r.productId].name : r.productId) + '</span>' + stars(r.rating) + '</div>' +
         (r.title ? '<p class="review-title">' + esc(r.title) + '</p>' : '') +
         '<p class="review-text">' + esc(r.text) + '</p>' +
         '<div class="tags">' + tagHtml + '</div>' +
+        statusHtml +
         '<div class="review-id">評論 ID：' + esc(r.id) + '</div>' +
         '</li>';
     }).join('');
