@@ -67,13 +67,32 @@
   var categoryById = {};
   categories.forEach(function (c) { categoryById[c.id] = c; });
 
+  // 顯示用名稱（data/labels.js，可省略）：類別中文名、分組、商品簡稱
+  var LABELS = window.SITE_LABELS || {};
+  var catLabels = LABELS.categories || {}, productLabels = LABELS.products || {};
+  var groupOrder = (LABELS.groups || []).slice();
+  categories.forEach(function (c, i) {
+    var l = catLabels[c.id] || {};
+    if (l.name) c.name = String(l.name);
+    c.group = l.group ? String(l.group) : '其他';
+    c.order = Object.keys(catLabels).indexOf(c.id);
+    if (c.order < 0) c.order = 1000 + i;
+    if (groupOrder.indexOf(c.group) < 0) groupOrder.push(c.group);
+  });
+  categories.sort(function (x, y) {
+    return groupOrder.indexOf(x.group) - groupOrder.indexOf(y.group) || x.order - y.order;
+  });
+
   var products = raw.products.map(function (p) {
     var categoryValue = p.category_id || p.category;
     var cat = categoryValue && categoryById[String(categoryValue)] ? String(categoryValue) : categories[0].id;
-    return { id: String(p.product_id), name: String(p.display_name || p.product_name || p.product_id), category: cat };
+    var id = String(p.product_id);
+    var full = String(p.product_name || p.display_name || id);
+    return { id: id, name: String(productLabels[id] || p.display_name || full), fullName: full, category: cat };
   });
   var productById = {};
-  $('source-note').textContent = (raw.metadata && raw.metadata.source || '') + '。' + (raw.metadata && raw.metadata.warning || 'AI初判需抽查。');
+  $('source-note').textContent = (raw.metadata && raw.metadata.warning) || 'AI 分析可能誤判，僅供參考。';
+  $('stat-chip').textContent = raw.products.length + ' 款商品・' + categories.length + ' 個類別';
   products.forEach(function (p) { productById[p.id] = p; });
 
   var reviews = [], reviewById = {}, tagsByReview = {}, statusesByReview = {};
@@ -111,27 +130,6 @@
   catch(error) {
     $('data-error').textContent=error.message;$('data-error').hidden=false;$('pick-section').hidden=true;return;
   }
-  var productPromises = {}, comparisonRequest = 0, loading = false;
-  function loadProduct(pid) {
-    var cached=window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
-    if (cached)return Promise.resolve(cached);
-    if (productPromises[pid])return productPromises[pid];
-    productPromises[pid]=new Promise(function(resolve,reject) {
-      var script=document.createElement('script');
-      script.src=raw.product_files[pid];script.async=true;
-      script.onload=function(){
-        var data=window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
-        if (!data || data.product_id!==pid || !Array.isArray(data.reviews) || !Array.isArray(data.analysis)) {
-          delete productPromises[pid];script.remove();reject(new Error('商品資料不完整，請重新載入。'));return;
-        }
-        resolve(data);
-      };
-      script.onerror=function(){delete productPromises[pid];script.remove();reject(new Error('商品資料下載失敗，請稍後再試。'));};
-      document.head.appendChild(script);
-    });
-    return productPromises[pid];
-  }
-
   var shardPromises = {}, comparisonRequest = 0, loading = false;
   function loadProduct(pid) {
     var cached = window.SITE_PRODUCT_DATA && window.SITE_PRODUCT_DATA[pid];
@@ -170,36 +168,44 @@
     }).join('');
   }
 
-  // 類別切換（只有一個類別就不顯示）
-  var catRow = $('category-row');
-  function renderCategoryButtons() {
-    catRow.innerHTML = categories.map(function (c) {
-      var on = c.id === state.cat;
-      return '<button type="button" class="cat-btn' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on +
-        '" data-cat="' + esc(c.id) + '">' + esc(c.name) + '</button>';
-    }).join('');
-  }
+  // 類別切換：下拉選單，依分組排列（只有一個類別就不顯示）
+  var catSel = $('category-select');
+  (function fillCategorySelect() {
+    var html = '';
+    groupOrder.forEach(function (g) {
+      var list = categories.filter(function (c) { return c.group === g; });
+      if (!list.length) return;
+      html += '<optgroup label="' + esc(g) + '">' + list.map(function (c) {
+        var n = products.filter(function (p) { return p.category === c.id; }).length;
+        return '<option value="' + esc(c.id) + '">' + esc(c.name) + '（' + n + ' 款）</option>';
+      }).join('') + '</optgroup>';
+    });
+    catSel.innerHTML = html;
+  })();
   function setCategory(id) {
-    comparisonRequest++; loading=false;
+    comparisonRequest++; loading = false; setLoading(false);
     state.cat = id;
     state.a = state.b = '';
     ASPECTS = categoryById[id].aspects;
-    renderCategoryButtons();
+    catSel.value = id;
     fillProductSelect(selA);
     fillProductSelect(selB);
+    // 只有兩款時直接幫忙選好
+    if (selA.options.length === 3) { selA.selectedIndex = 1; selB.selectedIndex = 2; }
     $('chart-section').hidden = true;
     $('review-section').hidden = true;
     hideTip();
     var note = categoryById[id].note;
     $('category-note').textContent = note;
     $('category-note').hidden = !note;
+    $('aspect-preview').textContent = '比較面向：' + ASPECTS.map(function (a) { return a.label; }).join('、');
     syncPick();
   }
-  catRow.addEventListener('click', function (e) {
-    var b = e.target.closest('.cat-btn');
-    if (b && b.getAttribute('data-cat') !== state.cat) setCategory(b.getAttribute('data-cat'));
-  });
+  catSel.addEventListener('change', function () { if (catSel.value !== state.cat) setCategory(catSel.value); });
   $('category-field').hidden = categories.length < 2;
+  function setLoading(on) {
+    hint.classList.toggle('is-loading', !!on);
+  }
 
   function syncPick() {
     // 另一邊已選的商品不能重複選
@@ -218,14 +224,14 @@
   function displayComparison(a,b) {
     state.a=a;state.b=b;state.filter={product:'all',aspect:'all',sent:'all'};
     $('chart-section').hidden=false;$('review-section').hidden=false;
-    renderChart();renderTable();fillFilters();renderReviews();
+    renderSummary();renderChart();renderTable();fillFilters();renderReviews();
     $('chart-section').scrollIntoView({behavior:'smooth',block:'start'});
   }
   btn.addEventListener('click',function() {
     var a=selA.value,b=selB.value,cat=state.cat;
     if (!a || !b || a===b || productById[a].category!==cat || productById[b].category!==cat)return;
     if (!raw.product_files) {displayComparison(a,b);return;}
-    var request=++comparisonRequest, succeeded=false;loading=true;btn.disabled=true;hint.textContent='正在讀取這兩款商品的評論…';
+    var request=++comparisonRequest, succeeded=false;loading=true;btn.disabled=true;hint.textContent='正在讀取這兩款商品的評論…';setLoading(true);
     $('chart-section').hidden=true;$('review-section').hidden=true;
     Promise.all([loadProduct(a),loadProduct(b)]).then(function(pair) {
       if (request!==comparisonRequest || state.cat!==cat || selA.value!==a || selB.value!==b)return;
@@ -235,7 +241,7 @@
     }).catch(function(error) {
       if(request===comparisonRequest)hint.textContent=error.message;
     }).finally(function() {
-      if(request===comparisonRequest) {loading=false;btn.disabled=!(selA.value&&selB.value&&selA.value!==selB.value);if(succeeded)hint.textContent='';}
+      if(request===comparisonRequest) {loading=false;setLoading(false);btn.disabled=!(selA.value&&selB.value&&selA.value!==selB.value);if(succeeded)hint.textContent='';}
     });
   });
 
@@ -248,6 +254,51 @@
       (tagsByReview[r.id] || []).forEach(function (t) { out[t.aspect][t.sent]++; });
     });
     return out;
+  }
+
+  // ---------- 結論卡片 ----------
+  function statsFor(pid) {
+    var rs = reviews.filter(function (r) { return r.productId === pid; });
+    var c = countFor(pid), pos = 0, neg = 0, best = null, worst = null;
+    ASPECTS.forEach(function (a) {
+      pos += c[a.key].pos; neg += c[a.key].neg;
+      if (c[a.key].pos > 0 && (!best || c[a.key].pos > c[best.key].pos)) best = a;
+      if (c[a.key].neg > 0 && (!worst || c[a.key].neg > c[worst.key].neg)) worst = a;
+    });
+    var rated = rs.filter(function (r) { return r.rating > 0; });
+    var avg = rated.length ? rated.reduce(function (t, r) { return t + r.rating; }, 0) / rated.length : 0;
+    return { n: rs.length, avg: avg, pos: pos, neg: neg, best: best, worst: worst, c: c };
+  }
+  function renderSummary() {
+    var html = [state.a, state.b].map(function (pid, i) {
+      var p = productById[pid], st = statsFor(pid);
+      var share = st.pos + st.neg ? Math.round(st.pos / (st.pos + st.neg) * 100) : null;
+      return '<article class="sum-card">' +
+        '<p class="sum-kicker">商品 ' + (i + 1) + '</p>' +
+        '<h3 class="sum-name">' + esc(p.name) + '</h3>' +
+        '<p class="sum-full" title="' + esc(p.fullName) + '">' + esc(p.fullName) + '</p>' +
+        '<div class="sum-stats">' +
+          '<div><span class="sum-num">' + (st.avg ? st.avg.toFixed(1) : '–') + '</span><span class="sum-unit">平均星等</span></div>' +
+          '<div><span class="sum-num">' + st.n + '</span><span class="sum-unit">則評論</span></div>' +
+          '<div><span class="sum-num">' + (share === null ? '–' : share + '%') + '</span><span class="sum-unit">面向好評比例</span></div>' +
+        '</div>' +
+        '<ul class="sum-points">' +
+          '<li><span class="dot dot-pos"></span>最受好評：' + (st.best ? esc(st.best.label) + '（' + st.c[st.best.key].pos + ' 則）' : '尚無') + '</li>' +
+          '<li><span class="dot dot-neg"></span>最多抱怨：' + (st.worst ? esc(st.worst.label) + '（' + st.c[st.worst.key].neg + ' 則）' : '尚無') + '</li>' +
+        '</ul>' +
+      '</article>';
+    }).join('');
+    $('summary').innerHTML = html;
+  }
+
+  // 每個面向：好評比例較高的那款（兩款都有被提到、比例不同才標）
+  function winnerOf(counts, key) {
+    var a = counts[state.a][key], b = counts[state.b][key];
+    var ta = a.pos + a.neg, tb = b.pos + b.neg;
+    if (!ta || !tb) return null;
+    var ra = a.pos / ta, rb = b.pos / tb;
+    if (Math.abs(ra - rb) < 1e-9) return null;
+    return ra > rb ? state.a : state.b;
   }
 
   // ---------- 4. 圖表（SVG，好評往右、負評往左） ----------
@@ -285,12 +336,14 @@
     var groupTops = [];
     ASPECTS.forEach(function (asp) {
       groupTops.push(y);
+      var win = winnerOf(counts, asp.key);
       s.push('<text x="0" y="' + (y + 19) + '" font-size="15" font-weight="600" style="fill:var(--text)">' + esc(asp.label) + '</text>');
       y += groupHead;
       ids.forEach(function (pid) {
         var c = counts[pid][asp.key];
         var name = productById[pid] ? productById[pid].name : pid;
-        s.push('<text x="0" y="' + (y + 13) + '" font-size="13" style="fill:var(--text-2)">' + esc(name) + '</text>');
+        s.push('<text x="0" y="' + (y + 13) + '" font-size="13" style="fill:var(--text-2)">' + esc(name) +
+          (win === pid ? '<tspan dx="6" font-weight="600" style="fill:var(--win)">' + (W < 560 ? '★' : '★ 好評比例較高') + '</tspan>' : '') + '</text>');
         var by = y + labelH;
         s.push(bar('neg', c.neg, by));
         s.push(bar('pos', c.pos, by));
@@ -472,6 +525,14 @@
     });
   }
 
+  $('review-list').addEventListener('click', function (e) {
+    var b = e.target.closest('.more-btn');
+    if (!b) return;
+    var t = b.previousElementSibling, open = t.classList.toggle('is-clamped') === false;
+    b.textContent = open ? '收合' : '展開全文';
+    b.setAttribute('aria-expanded', String(open));
+  });
+
   // 啟動：預設第一個類別
   setCategory(categories[0].id);
 
@@ -493,13 +554,15 @@
       var tagHtml = tags.length ? tags.map(function (t) {
         return '<span class="tag tag-' + t.sent + '">' + esc(labelOf(ASPECTS, t.aspect)) + ' ' + esc(labelOf(SENTS, t.sent)) + '</span>';
       }).join('') : '<span class="tag tag-none">沒標到比較的面向</span>';
-      var statusHtml = (statusesByReview[r.id] || []).map(function(s) {
-        return '<div class="hint">' + esc(labelOf(ASPECTS,s.aspect)) + '：' + esc(s.provenance || s.status) + (s.review_notes && s.review_notes.length ? '；待確認：' + esc(s.review_notes.join('；')) : '') + '</div>';
-      }).join('');
+      var statusRows = statusesByReview[r.id] || [];
+      var statusHtml = statusRows.length ? '<details class="status-box"><summary>分析來源</summary>' + statusRows.map(function(s) {
+        return '<div class="status-line">' + esc(labelOf(ASPECTS,s.aspect)) + '：' + esc(s.provenance || s.status) + (s.review_notes && s.review_notes.length ? '；待確認：' + esc(s.review_notes.join('；')) : '') + '</div>';
+      }).join('') + '</details>' : '';
       return '<li class="review">' +
         '<div class="review-head"><span>' + esc(productById[r.productId] ? productById[r.productId].name : r.productId) + '</span>' + stars(r.rating) + '</div>' +
         (r.title ? '<p class="review-title">' + esc(r.title) + '</p>' : '') +
-        '<p class="review-text">' + esc(r.text) + '</p>' +
+        '<p class="review-text' + (r.text.length > 320 ? ' is-long is-clamped' : '') + '">' + esc(r.text) + '</p>' +
+        (r.text.length > 320 ? '<button type="button" class="more-btn" aria-expanded="false">展開全文</button>' : '') +
         '<div class="tags">' + tagHtml + '</div>' +
         statusHtml +
         '<div class="review-id">評論 ID：' + esc(r.id) + '</div>' +

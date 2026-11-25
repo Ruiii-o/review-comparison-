@@ -4,23 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>商品評論比較</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <h1>商品評論比較</h1>
-    <p class="subtitle">選一個類別和兩款商品，看各面向的好評和負評，再讀對應的評論原文。</p>
-    <p class="hint" id="source-note"></p>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">第一組・AI 商品評論分析</p>
+      <h1>商品評論比較</h1>
+      <p class="subtitle">選一個類別和兩款商品，看各面向的好評和負評，再讀對應的評論原文。</p>
+      <div class="chips">
+        <span class="chip">資料來源：Amazon Reviews 2023</span>
+        <span class="chip" id="stat-chip"></span>
+      </div>
+      <p class="source-note" id="source-note"></p>
+    </div>
   </header>
 
   <main>
     <!-- 1. 選擇區 -->
     <section class="card" id="pick-section" aria-labelledby="pick-title">
       <h2 id="pick-title">選擇商品</h2>
-      <div class="field" id="category-field">
-        <span class="field-label" id="category-label">類別</span>
-        <div class="category-row" id="category-row" role="radiogroup" aria-labelledby="category-label"></div>
-      </div>
+      <label class="field" id="category-field">
+        <span class="field-label">類別</span>
+        <select id="category-select"></select>
+        <span class="aspect-preview" id="aspect-preview"></span>
+      </label>
       <div class="pick-row">
         <label class="field">
           <span class="field-label">商品 1</span>
@@ -40,11 +51,14 @@
 
     <!-- 2. 圖表區 -->
     <section class="card" id="chart-section" aria-labelledby="chart-title" hidden>
-      <h2 id="chart-title">各面向比較</h2>
+      <h2 id="chart-title">比較結果</h2>
+      <div class="summary" id="summary"></div>
+      <h3 class="sub-title">各面向好評與負評</h3>
       <p class="note" id="category-note" hidden></p>
       <div class="legend" aria-label="圖例">
         <span class="legend-item"><span class="swatch swatch-neg"></span>負評（往左）</span>
         <span class="legend-item"><span class="swatch swatch-pos"></span>好評（往右）</span>
+        <span class="legend-item"><span class="win-mark">★</span>好評比例較高</span>
       </div>
       <div id="chart" class="chart"></div>
       <p class="hint">點長條可以只看那一類評論。</p>
@@ -79,10 +93,13 @@
     <p class="error card" id="data-error" hidden></p>
   </main>
 
+  <footer class="site-footer">評論分析由 AI 產生，可能有誤判；數字只代表收集到的評論，不代表所有使用者。</footer>
+
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <!-- 資料：之後換成真實資料只要覆蓋 data/data.js -->
   <script src="data/data.js"></script>
+  <script src="data/labels.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
